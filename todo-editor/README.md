@@ -12,7 +12,7 @@ This is a very lightweight editor with the following features:
 
 That's it. The editor does not have any additional intelligence. Nice thing is that you can check in your todo-files and can use them on more than one machine easily. No magic, no hazzle. 
 
-\!\[Feature overview\]\(images/feature-overview.png\)
+![Feature overview](images/feature-overview.png)
 
 ## Known Issues
 
