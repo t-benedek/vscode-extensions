@@ -10,7 +10,9 @@ This is a very lightweight editor with the following features:
 3. Support code completion for marking a todo as DONE
 4. Files needs to have the ending ".todo" to be considered as a todo file. 
 
-That's it. The editor does not have any additional intelligence. Nice thing is that you can check in your todo-files and can use them on more than one machine easily. No magic, no hazzle. 
+That's it. The editor does not have any additional intelligence. Nice thing is that you can check in your todo-files and can use them on more than one machine easily. No magic, no hassle. 
+
+---
 
 ![Feature overview](images/feature-overview.png)
 
