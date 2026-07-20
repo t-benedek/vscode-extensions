@@ -1,10 +1,16 @@
 {
   "name": "todo-editor",
   "displayName": "todo-editor",
+  "publisher": "thomas-benedek-local",
   "description": "todo",
-  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/t-benedek/vscode-extensions.git",
+    "directory": "todo-editor"
+  },
+  "version": "0.0.2",
   "engines": {
-    "vscode": "^1.74.0"
+    "vscode": "^1.89.0"
   },
   "categories": [
     "Other"
@@ -44,7 +50,7 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.125.0",
+    "@types/vscode": "^1.89.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "24.x",
     "typescript-eslint": "^8.61.1",
