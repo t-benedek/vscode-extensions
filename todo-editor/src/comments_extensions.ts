@@ -1,9 +1,10 @@
 import * as vscode from 'vscode';
 
-// "  Kommentar" → true
-// "       weiterer Text" → true
-// "- Aufgabe" → false
-// "Text ohne Einrückung" → false
+// Examples:
+// "  comment" → true
+// "       additional comment" → true
+// "- Task" → false
+// "Text without indentation" → false
 export function isIndentedCommentLine(lineText: string): boolean {
     if (!lineText || lineText.trim() === '') {
         return false;
@@ -51,12 +52,41 @@ export function shouldAutoInsertTodoBullet(
         return false;
     }
 
-    if (!/^(?:\r\n|\r|\n)$/.test(change.text)) {
+    if (!/^(?:\r\n|\r|\n)[\t ]*$/.test(change.text)) {
         return false;
     }
 
     const currentLine = document.lineAt(change.range.start.line).text;
     return currentLine.trimStart().startsWith('-');
+}
+
+export function getTodoBulletPrefix(lineText: string): string {
+    const match = lineText.match(/^(\s*)-\s*/);
+
+    if (!match) {
+        return '- ';
+    }
+
+    return `${match[1]}- `;
+}
+
+export function getTodoBulletInsertion(lineText: string, nextLineText: string): { character: number; text: string } {
+    const bulletPrefix = getTodoBulletPrefix(lineText);
+    const currentIndentation = bulletPrefix.match(/^\s*/)?.[0] ?? '';
+    const nextLineIndentation = nextLineText.match(/^\s*/)?.[0] ?? '';
+    const insertCharacter = nextLineIndentation.length;
+
+    if (currentIndentation.startsWith(nextLineIndentation)) {
+        return {
+            character: insertCharacter,
+            text: `${currentIndentation.slice(nextLineIndentation.length)}- `
+        };
+    }
+
+    return {
+        character: 0,
+        text: bulletPrefix
+    };
 }
 
 export async function autoInsertTodoBulletOnEnter(event: vscode.TextDocumentChangeEvent): Promise<void> {
@@ -73,9 +103,15 @@ export async function autoInsertTodoBulletOnEnter(event: vscode.TextDocumentChan
         return;
     }
 
+    const nextLineIndex = firstChange.range.start.line + 1;
+    const currentLine = event.document.lineAt(firstChange.range.start.line).text;
+    const nextLineText = nextLineIndex < event.document.lineCount
+        ? event.document.lineAt(nextLineIndex).text
+        : '';
+    const insertion = getTodoBulletInsertion(currentLine, nextLineText);
     const edit = new vscode.WorkspaceEdit();
-    const insertPosition = new vscode.Position(firstChange.range.start.line + 1, 0);
-    edit.insert(event.document.uri, insertPosition, '- ');
+    const insertPosition = new vscode.Position(nextLineIndex, insertion.character);
+    edit.insert(event.document.uri, insertPosition, insertion.text);
 
     await vscode.workspace.applyEdit(edit);
 }

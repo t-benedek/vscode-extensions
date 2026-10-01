@@ -27,6 +27,24 @@ suite('Extension Test Suite', () => {
 		} as vscode.TextDocumentContentChangeEvent), false);
 	});
 
+	test('pressing Enter after an indented todo item preserves the indentation', async () => {
+		const document = await vscode.workspace.openTextDocument({
+			content: '  - task\n',
+			language: 'todo'
+		});
+		const change = {
+			range: new vscode.Range(new vscode.Position(0, 8), new vscode.Position(0, 8)),
+			text: '\n  '
+		} as vscode.TextDocumentContentChangeEvent;
+
+		assert.strictEqual(commentsExtensions.shouldAutoInsertTodoBullet(document, change), true);
+		assert.strictEqual(commentsExtensions.getTodoBulletPrefix(document.lineAt(0).text), '  - ');
+		assert.deepStrictEqual(
+			commentsExtensions.getTodoBulletInsertion(document.lineAt(0).text, '  '),
+			{ character: 2, text: '- ' }
+		);
+	});
+
 	test('indented comment lines under a done todo are also marked as done', () => {
 		const lines = [
 			'- first task @done',
