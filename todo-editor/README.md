@@ -22,8 +22,12 @@ none
 
 ## Release Notes
 
-### 0.0.1
+### 0.0.2
+Added two new features
+1. Automatically add new task after hitting "Return" at the end of current task
+2. Marks comment lines (line without "-") of a parent task (indented lines) as done is parent task is marked as done
 
+### 0.0.1
 Initial release of todo-editor with basic feature set. Not tested yet in day to day work. 
 
 ---
