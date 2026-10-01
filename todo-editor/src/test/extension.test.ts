@@ -1,9 +1,6 @@
 import * as assert from 'assert';
-
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
 import * as vscode from 'vscode';
-// import * as myExtension from '../../extension';
+import * as commentsExtensions from '../comments_extensions';
 
 suite('Extension Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
@@ -11,5 +8,36 @@ suite('Extension Test Suite', () => {
 	test('Sample test', () => {
 		assert.strictEqual(-1, [1, 2, 3].indexOf(5));
 		assert.strictEqual(-1, [1, 2, 3].indexOf(0));
+	});
+
+	test('pressing Enter after a todo item inserts a new bullet line', async () => {
+		const document = await vscode.workspace.openTextDocument({
+			content: '- task\n',
+			language: 'todo'
+		});
+		const change = {
+			range: new vscode.Range(new vscode.Position(0, 6), new vscode.Position(0, 6)),
+			text: '\n'
+		} as vscode.TextDocumentContentChangeEvent;
+
+		assert.strictEqual(commentsExtensions.shouldAutoInsertTodoBullet(document, change), true);
+		assert.strictEqual(commentsExtensions.shouldAutoInsertTodoBullet(document, {
+			range: new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
+			text: 'hello'
+		} as vscode.TextDocumentContentChangeEvent), false);
+	});
+
+	test('indented comment lines under a done todo are also marked as done', () => {
+		const lines = [
+			'- first task @done',
+			'  first comment',
+			'    second comment',
+			'- next task',
+			'  next comment'
+		];
+
+		assert.deepStrictEqual(commentsExtensions.getDoneTodoDecorationLines(lines), [0, 1, 2]);
+		assert.strictEqual(commentsExtensions.isIndentedCommentLine('  comment'), true);
+		assert.strictEqual(commentsExtensions.isIndentedCommentLine('- comment'), false);
 	});
 });

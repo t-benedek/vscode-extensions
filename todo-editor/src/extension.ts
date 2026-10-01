@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { autoInsertTodoBulletOnEnter, getDoneTodoDecorationLines } from './comments_extensions';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('todo-editor: extension activated');
@@ -22,13 +23,17 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Hilfsfunktion: Nur .todo-Dateien dekorieren
     function shouldDecorateEditor(editor: vscode.TextEditor | undefined): editor is vscode.TextEditor {
-        if (!editor) return false;
+        if (!editor) {
+            return false;
+        }
         return editor.document.fileName.endsWith('.todo');
     }
 
     // Funktion, die das Dokument scannt und die Farben verteilt
     function updateDecorations(editor: vscode.TextEditor | undefined = vscode.window.activeTextEditor) {
-        if (!shouldDecorateEditor(editor)) return;
+        if (!shouldDecorateEditor(editor)) {
+            return;
+        }
 
         const text = editor.document.getText();
         const blueDecorations: vscode.DecorationOptions[] = [];
@@ -36,14 +41,16 @@ export function activate(context: vscode.ExtensionContext) {
         const orangeDecorations: vscode.DecorationOptions[] = [];
 
         const lines = text.split(/\r?\n/);
+        const grayDoneLines = new Set(getDoneTodoDecorationLines(lines));
+
         for (let i = 0; i < lines.length; i++) {
             const lineText = lines[i];
             
-            if (lineText.includes('@done')) {
+            if (grayDoneLines.has(i)) {
                 const startPos = new vscode.Position(i, 0);
                 const endPos = new vscode.Position(i, lineText.length);
                 grayDecorations.push({ range: new vscode.Range(startPos, endPos) });
-            } 
+            }
             else if (lineText.trimEnd().endsWith(':')) {
                 const startPos = new vscode.Position(i, 0);
                 const endPos = new vscode.Position(i, lineText.length);
@@ -77,9 +84,15 @@ export function activate(context: vscode.ExtensionContext) {
     }, null, context.subscriptions);
     vscode.workspace.onDidChangeTextDocument((event) => {
         const activeEditor = vscode.window.activeTextEditor;
-        if (!activeEditor) return;
+        if (!activeEditor) {
+            return;
+        }
         if (event.document === activeEditor.document) {
             updateDecorations(activeEditor);
+        }
+
+        if (event.contentChanges.length > 0) {
+            void autoInsertTodoBulletOnEnter(event);
         }
     }, null, context.subscriptions);
 
@@ -89,7 +102,9 @@ export function activate(context: vscode.ExtensionContext) {
         {
             provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
                 const lineText = document.lineAt(position).text;
-                if (!lineText.includes('-')) return [];
+                if (!lineText.includes('-')) {
+                    return [];
+                }
 
                 const completionItem = new vscode.CompletionItem('@done', vscode.CompletionItemKind.Keyword);
                 completionItem.detail = 'To-Do als erledigt markieren';
